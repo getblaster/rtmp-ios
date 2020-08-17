@@ -4,7 +4,7 @@ import AVFoundation
 import SwiftPMSupport
 #endif
 
-final class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
+public class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
     lazy var encoder = AudioConverter()
     let lockQueue = DispatchQueue(label: "com.haishinkit.HaishinKit.AudioIOComponent.lock")
 
@@ -171,14 +171,14 @@ final class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
 
 extension AudioIOComponent: AVCaptureAudioDataOutputSampleBufferDelegate {
     // MARK: AVCaptureAudioDataOutputSampleBufferDelegate
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+    public func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         appendSampleBuffer(sampleBuffer)
     }
 }
 
 extension AudioIOComponent: AudioConverterDelegate {
     // MARK: AudioConverterDelegate
-    func didSetFormatDescription(audio formatDescription: CMFormatDescription?) {
+    public func didSetFormatDescription(audio formatDescription: CMFormatDescription?) {
         guard let formatDescription = formatDescription else {
             mixer?.videoIO.queue.clockReference = nil
             return
@@ -198,7 +198,7 @@ extension AudioIOComponent: AudioConverterDelegate {
         mixer?.videoIO.queue.clockReference = self
     }
 
-    func sampleOutput(audio data: UnsafeMutableAudioBufferListPointer, presentationTimeStamp: CMTime) {
+    public func sampleOutput(audio data: UnsafeMutableAudioBufferListPointer, presentationTimeStamp: CMTime) {
         guard !data.isEmpty, data[0].mDataByteSize != 0 else { return }
 
         guard

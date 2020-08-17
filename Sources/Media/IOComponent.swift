@@ -1,7 +1,7 @@
 import CoreMedia
 import Foundation
 
-class IOComponent: NSObject {
+public class IOComponent: NSObject {
     private(set) weak var mixer: AVMixer?
 
     init(mixer: AVMixer) {

@@ -1,7 +1,7 @@
 import AVFoundation
 import CoreImage
 
-final class VideoIOComponent: IOComponent {
+public class VideoIOComponent: IOComponent {
     #if os(macOS)
     static let defaultAttributes: [NSString: NSObject] = [
         kCVPixelBufferPixelFormatTypeKey: NSNumber(value: kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange),
@@ -41,7 +41,7 @@ final class VideoIOComponent: IOComponent {
             decoder.formatDescription = formatDescription
         }
     }
-    lazy var encoder = H264Encoder()
+    public lazy var encoder = H264Encoder()
     lazy var decoder = H264Decoder()
     lazy var queue: DisplayLinkedQueue = {
         let queue = DisplayLinkedQueue()
@@ -468,7 +468,7 @@ extension VideoIOComponent {
 
 extension VideoIOComponent: AVCaptureVideoDataOutputSampleBufferDelegate {
     // MARK: AVCaptureVideoDataOutputSampleBufferDelegate
-    func captureOutput(_ captureOutput: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+    public func captureOutput(_ captureOutput: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         encodeSampleBuffer(sampleBuffer)
     }
 }
