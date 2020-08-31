@@ -186,12 +186,10 @@ open class NetSocket: NSObject {
     }
 
     func close(isDisconnected: Bool) {
-        inputQueue.async {
-            guard self.runloop != nil else {
+        guard self.runloop != nil else {
                 return
             }
-            self.deinitConnection(isDisconnected: isDisconnected)
-        }
+        self.deinitConnection(isDisconnected: isDisconnected)
     }
 
     func initConnection() {
