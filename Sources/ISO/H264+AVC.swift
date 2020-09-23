@@ -71,7 +71,11 @@ struct AVCConfigurationRecord {
     var sequenceParameterSetExt: [[UInt8]] = []
 
     var naluLength: Int32 {
-        Int32((lengthSizeMinusOneWithReserved >> 6) + 1)
+        if Int32((lengthSizeMinusOneWithReserved >> 6) + 1) == 1 {
+            return 4
+        } else {
+            return Int32((lengthSizeMinusOneWithReserved >> 6) + 1)
+        }
     }
 
     init() {
