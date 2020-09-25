@@ -1,16 +1,18 @@
-#if os(macOS)
-
 import AVFoundation
 import MetalKit
 
 open class MTHKView: MTKView, NetStreamRenderer {
-    public var videoGravity: AVLayerVideoGravity = .resizeAspect
-    public var videoFormatDescription: CMVideoFormatDescription? {
+    open var isMirrored: Bool = false
+    open var videoGravity: AVLayerVideoGravity = .resizeAspect
+    open var videoFormatDescription: CMVideoFormatDescription? {
         currentStream?.mixer.videoIO.formatDescription
     }
 
+    #if !os(tvOS)
     var position: AVCaptureDevice.Position = .back
     var orientation: AVCaptureVideoOrientation = .portrait
+    #endif
+
     var displayImage: CIImage?
     weak var currentStream: NetStream? {
         didSet {
@@ -40,7 +42,6 @@ open class MTHKView: MTKView, NetStreamRenderer {
         if let stream: NetStream = stream {
             stream.mixer.videoIO.context = CIContext(mtlDevice: device!)
             stream.lockQueue.async {
-                self.position = stream.mixer.videoIO.position
                 stream.mixer.videoIO.renderer = self
                 stream.mixer.startRunning()
             }
@@ -95,13 +96,20 @@ extension MTHKView: MTKViewDelegate {
             break
         }
         let bounds = CGRect(origin: .zero, size: drawableSize)
-        let scaledImage: CIImage = displayImage
+        var scaledImage: CIImage = displayImage
             .transformed(by: CGAffineTransform(translationX: translationX, y: translationY))
             .transformed(by: CGAffineTransform(scaleX: scaleX, y: scaleY))
+
+        if isMirrored {
+            if #available(iOS 11.0, tvOS 11.0, macOS 10.13, *) {
+                scaledImage = scaledImage.oriented(.upMirrored)
+            } else {
+                scaledImage = scaledImage.oriented(forExifOrientation: 2)
+            }
+        }
+
         context.render(scaledImage, to: currentDrawable.texture, commandBuffer: commandBuffer, bounds: bounds, colorSpace: colorSpace)
         commandBuffer.present(currentDrawable)
         commandBuffer.commit()
     }
 }
-
-#endif

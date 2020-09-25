@@ -277,7 +277,7 @@ open class RTMPStream: NetStream {
                 currentFPS = 0
                 frameCount = 0
                 info.clear()
-                delegate?.clear()
+                delegate?.rtmpStreamDidClear(self)
             case .playing:
                 mixer.delegate = self
                 mixer.startDecoding(rtmpConnection.audioEngine)
@@ -309,7 +309,7 @@ open class RTMPStream: NetStream {
     }
     var audioTimestamp: Double = 0.0
     var videoTimestamp: Double = 0.0
-    private(set) var muxer = RTMPMuxer()
+    private let muxer = RTMPMuxer()
     private var sampler: MP4Sampler?
     private var frameCount: UInt16 = 0
     private var dispatcher: IEventDispatcher!
@@ -631,10 +631,10 @@ extension RTMPStream: AVMixerDelegate {
     // MARK: AVMixerDelegate
     func didOutputVideo(_ buffer: CMSampleBuffer) {
         frameCount += 1
-        delegate?.didOutputVideo(buffer)
+        delegate?.rtmpStream(self, didOutput: buffer)
     }
 
     func didOutputAudio(_ buffer: AVAudioPCMBuffer, presentationTimeStamp: CMTime) {
-        delegate?.didOutputAudio(buffer, presentationTimeStamp: presentationTimeStamp)
+        delegate?.rtmpStream(self, didOutput: buffer, presentationTimeStamp: presentationTimeStamp)
     }
 }
