@@ -791,6 +791,10 @@ final class RTMPUserControlMessage: RTMPMessage {
 
     override func execute(_ connection: RTMPConnection, type: RTMPChunkType) {
         switch event {
+        case .streamBegin:
+            connection.dispatch(.event, bubbles: false, data: "streamBegin")
+        case .streamEof:
+            connection.dispatch(.event, bubbles: false, data: "streamEof")
         case .ping:
             connection.socket.doOutput(chunk: RTMPChunk(
                 type: .zero,
