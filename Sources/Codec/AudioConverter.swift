@@ -148,13 +148,15 @@ public class AudioConverter {
         var status: OSStatus = noErr
         if _converter == nil {
             var inClassDescriptions = destination.inClassDescriptions
-            status = AudioConverterNewSpecific(
-                &inSourceFormat!,
-                &inDestinationFormat,
-                UInt32(inClassDescriptions.count),
-                &inClassDescriptions,
-                &_converter
-            )
+            if inSourceFormat != nil {
+                status = AudioConverterNewSpecific(
+                    &inSourceFormat!,
+                    &inDestinationFormat,
+                    UInt32(inClassDescriptions.count),
+                    &inClassDescriptions,
+                    &_converter
+                )
+            }
             setBitrateUntilNoErr(bitrate * inDestinationFormat.mChannelsPerFrame)
         }
         if status != noErr {
