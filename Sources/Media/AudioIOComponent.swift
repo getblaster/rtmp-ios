@@ -168,7 +168,7 @@ public class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
         currentBuffers.mutate { $0 = 0 }
     }
     
-    func reset() {
+    public func reset() {
         self.audioEngine?.stop()
         self.audioEngine?.reset()
     }
