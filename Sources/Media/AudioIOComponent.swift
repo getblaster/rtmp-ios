@@ -167,6 +167,11 @@ public class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
         encoder.stopRunning()
         currentBuffers.mutate { $0 = 0 }
     }
+    
+    func reset() {
+        self.audioEngine?.stop()
+        self.audioEngine?.reset()
+    }
 }
 
 extension AudioIOComponent: AVCaptureAudioDataOutputSampleBufferDelegate {
