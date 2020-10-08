@@ -657,11 +657,15 @@ final class RTMPVideoMessage: RTMPMessage {
             stream.videoTimestamp += Double(timestamp)
         }
 
+        let presentationTimeStamp = CMTimeMake(value: Int64(stream.videoTimestamp) + Int64(compositionTime), timescale: 1000)
+
         var timing = CMSampleTimingInfo(
             duration: CMTimeMake(value: Int64(timestamp), timescale: 1000),
-            presentationTimeStamp: CMTimeMake(value: Int64(stream.videoTimestamp) + Int64(compositionTime), timescale: 1000),
+            presentationTimeStamp: presentationTimeStamp,
             decodeTimeStamp: .invalid
         )
+
+        stream.currentVideoDecodeTimestamp = presentationTimeStamp
 
         payload.withUnsafeBytes { (buffer: UnsafeRawBufferPointer) -> Void in
             var blockBuffer: CMBlockBuffer?
