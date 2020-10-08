@@ -4,6 +4,9 @@ import AVFoundation
  flash.net.NetStream for Swift
  */
 open class RTMPStream: NetStream {
+ 
+    var currentVideoDecodeTimestamp = CMTime.zero
+ 
     /**
      NetStatusEvent#info.code for NetStream
      */
