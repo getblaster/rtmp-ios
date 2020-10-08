@@ -476,14 +476,14 @@ extension VideoIOComponent: AVCaptureVideoDataOutputSampleBufferDelegate {
 extension VideoIOComponent: VideoDecoderDelegate {
     // MARK: VideoDecoderDelegate
     func sampleOutput(video sampleBuffer: CMSampleBuffer) {
-        queue.delegate?.queue(sampleBuffer)
+        queue.enqueue(sampleBuffer)
     }
 }
 
 extension VideoIOComponent: DisplayLinkedQueueDelegate {
     // MARK: DisplayLinkedQueue
     func queue(_ buffer: CMSampleBuffer) {
-        //renderer?.render(image: CIImage(cvPixelBuffer: buffer.imageBuffer!))
+        renderer?.render(image: CIImage(cvPixelBuffer: buffer.imageBuffer!))
         mixer?.delegate?.didOutputVideo(buffer)
     }
 
