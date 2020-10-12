@@ -14,9 +14,16 @@ protocol DisplayLinkedQueueClockReference: class {
     var duration: TimeInterval { get }
 }
 
-final class DisplayLinkedQueue: NSObject {
+public class DisplayLinkedQueue: NSObject {
     static let defaultPreferredFramesPerSecond = 0
 
+    public var offset: TimeInterval = 0
+    
+    public func reset() {
+        buffer.removeAll()
+        buffer = .init(256)
+    }
+    
     var isPaused: Bool {
         get { displayLink?.isPaused ?? false }
         set { displayLink?.isPaused = newValue }
@@ -44,7 +51,7 @@ final class DisplayLinkedQueue: NSObject {
         }
     }
     private let lockQueue = DispatchQueue(label: "com.haishinkit.HaishinKit.DisplayLinkedQueue.lock")
-    private(set) var isRunning: Atomic<Bool> = .init(false)
+    public var isRunning: Atomic<Bool> = .init(false)
 
     func enqueue(_ buffer: CMSampleBuffer) {
         guard buffer.presentationTimeStamp != .invalid else {
@@ -69,7 +76,7 @@ final class DisplayLinkedQueue: NSObject {
                 delegate?.empty()
             }
         }
-        let current = duration
+        let current = (clockReference?.duration ?? duration) + offset
         let targetTimestamp = first.presentationTimeStamp.seconds + first.duration.seconds
         if targetTimestamp < current {
             buffer.removeFirst()
@@ -85,7 +92,7 @@ final class DisplayLinkedQueue: NSObject {
 
 extension DisplayLinkedQueue: Running {
     // MARK: Running
-    func startRunning() {
+    public func startRunning() {
         lockQueue.async {
             guard !self.isRunning.value else {
                 return
@@ -96,7 +103,7 @@ extension DisplayLinkedQueue: Running {
         }
     }
 
-    func stopRunning() {
+    public func stopRunning() {
         lockQueue.async {
             guard self.isRunning.value else {
                 return
