@@ -43,7 +43,7 @@ public class VideoIOComponent: IOComponent {
     }
     public lazy var encoder = H264Encoder()
     lazy var decoder = H264Decoder()
-    lazy var queue: DisplayLinkedQueue = {
+    lazy public var queue: DisplayLinkedQueue = {
         let queue = DisplayLinkedQueue()
         queue.delegate = self
         return queue
