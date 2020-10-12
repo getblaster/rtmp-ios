@@ -49,9 +49,9 @@ public final class H264Encoder {
         }
     }
 
-    public static let defaultWidth: Int32 = 480
-    public static let defaultHeight: Int32 = 272
-    public static let defaultBitrate: UInt32 = 160 * 1000
+    public static let defaultWidth: Int32 = 540
+    public static let defaultHeight: Int32 = 960
+    public static let defaultBitrate: UInt32 = 2000 * 1000
     public static let defaultScalingMode: ScalingMode = .trim
 
     #if os(iOS)
@@ -117,7 +117,7 @@ public final class H264Encoder {
             setProperty(kVTCompressionPropertyKey_AverageBitRate, Int(bitrate) as CFTypeRef)
         }
     }
-    var profileLevel: String = kVTProfileLevel_H264_Baseline_3_1 as String {
+    var profileLevel: String = kVTProfileLevel_H264_Baseline_AutoLevel as String {
         didSet {
             guard profileLevel != oldValue else {
                 return
@@ -125,7 +125,7 @@ public final class H264Encoder {
             invalidateSession = true
         }
     }
-    var maxKeyFrameIntervalDuration: Double = 2.0 {
+    var maxKeyFrameIntervalDuration: Double = 1.0 {
         didSet {
             guard maxKeyFrameIntervalDuration != oldValue else {
                 return
