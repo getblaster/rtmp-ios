@@ -79,7 +79,9 @@ public class AudioConverter {
                 return
             }
             logger.info(formatDescription.debugDescription)
-            delegate?.didSetFormatDescription(audio: formatDescription)
+            if !self.finishCalled {
+                delegate?.didSetFormatDescription(audio: formatDescription)
+            }
         }
     }
     var lockQueue = DispatchQueue(label: "com.haishinkit.HaishinKit.AudioConverter.lock")
