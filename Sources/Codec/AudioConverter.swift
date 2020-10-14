@@ -201,18 +201,38 @@ public class AudioConverter {
         }
     }
 
+    var finishCalled = false
+
     @inline(__always)
     private func convert(_ dataBytesSize: Int, presentationTimeStamp: CMTime) {
         var finished = false
         repeat {
+            
+            if finishCalled {
+                break
+                return
+            }
+            
             var ioOutputDataPacketSize: UInt32 = destination.packetSize
 
             let maximumBuffers = destination.maximumBuffers((channels == 0) ? inSourceFormat?.mChannelsPerFrame ?? 1 : channels)
             let outOutputData: UnsafeMutableAudioBufferListPointer = AudioBufferList.allocate(maximumBuffers: maximumBuffers)
+            
+            var shouldReturn = false
+            
             for i in 0..<maximumBuffers {
+                if finishCalled || inSourceFormat == nil {
+                    shouldReturn = true
+                    break
+                }
                 outOutputData[i].mNumberChannels = inDestinationFormat.mChannelsPerFrame
                 outOutputData[i].mDataByteSize = UInt32(dataBytesSize)
                 outOutputData[i].mData = UnsafeMutableRawPointer.allocate(byteCount: dataBytesSize, alignment: 0)
+            }
+            
+            if shouldReturn {
+                break
+                return
             }
 
             let status = AudioConverterFillComplexBuffer(
@@ -313,12 +333,14 @@ public class AudioConverter {
 extension AudioConverter: Running {
     // MARK: Running
     public func startRunning() {
+        finishCalled = false
         lockQueue.async {
             self.isRunning.mutate { $0 = true }
         }
     }
 
     public func stopRunning() {
+        finishCalled = true
         lockQueue.async {
             if let convert: AudioQueueRef = self._converter {
                 AudioConverterDispose(convert)
