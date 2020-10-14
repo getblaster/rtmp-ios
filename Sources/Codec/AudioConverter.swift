@@ -102,22 +102,24 @@ public class AudioConverter {
     private var maximumBuffers: Int = AudioConverter.defaultMaximumBuffers
     private var currentAudioBuffer = AudioBuffer(AudioStreamBasicDescription(mSampleRate: 0, mFormatID: 0, mFormatFlags: 0, mBytesPerPacket: 0, mFramesPerPacket: 0, mBytesPerFrame: 0, mChannelsPerFrame: 1, mBitsPerChannel: 0, mReserved: 0))
     private var _inDestinationFormat: AudioStreamBasicDescription?
-    private var inDestinationFormat: AudioStreamBasicDescription {
+    private var inDestinationFormat: AudioStreamBasicDescription! {
         get {
             if _inDestinationFormat == nil {
                 _inDestinationFormat = destination.audioStreamBasicDescription(inSourceFormat, sampleRate: sampleRate, channels: channels)
-                CMAudioFormatDescriptionCreate(
-                    allocator: kCFAllocatorDefault,
-                    asbd: &_inDestinationFormat!,
-                    layoutSize: 0,
-                    layout: nil,
-                    magicCookieSize: 0,
-                    magicCookie: nil,
-                    extensions: nil,
-                    formatDescriptionOut: &formatDescription
-                )
+                if _inDestinationFormat != nil {
+                    CMAudioFormatDescriptionCreate(
+                        allocator: kCFAllocatorDefault,
+                        asbd: &_inDestinationFormat!,
+                        layoutSize: 0,
+                        layout: nil,
+                        magicCookieSize: 0,
+                        magicCookie: nil,
+                        extensions: nil,
+                        formatDescriptionOut: &formatDescription
+                    )
+                }
             }
-            return _inDestinationFormat!
+            return _inDestinationFormat
         }
         set {
             _inDestinationFormat = newValue
@@ -221,7 +223,7 @@ public class AudioConverter {
             var shouldReturn = false
             
             for i in 0..<maximumBuffers {
-                if finishCalled || inSourceFormat == nil {
+                if finishCalled || inSourceFormat == nil || inDestinationFormat == nil {
                     shouldReturn = true
                     break
                 }
