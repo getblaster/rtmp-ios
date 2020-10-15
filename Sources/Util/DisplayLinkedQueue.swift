@@ -104,13 +104,13 @@ extension DisplayLinkedQueue: Running {
     }
 
     public func stopRunning() {
+        guard self.isRunning.value else {
+            return
+        }
+        self.buffer.removeAll()
         lockQueue.async {
-            guard self.isRunning.value else {
-                return
-            }
             self.displayLink = nil
             self.clockReference = nil
-            self.buffer.removeAll()
             self.isRunning.mutate { $0 = false }
         }
     }
