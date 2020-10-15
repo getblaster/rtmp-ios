@@ -152,13 +152,21 @@ final class RTMPChunk {
                 logger.error(newValue.description)
                 return
             }
-
+            
             switch type {
             case .zero:
+                if newValue.count <= pos + 11 {
+                    logger.error(newValue.description)
+                    return
+                }
                 message.timestamp = UInt32(data: newValue[pos..<pos + 3]).bigEndian
                 message.length = Int(Int32(data: newValue[pos + 3..<pos + 6]).bigEndian)
                 message.streamId = UInt32(data: newValue[pos + 7..<pos + 11])
             case .one:
+                if newValue.count <= pos + 6 {
+                    logger.error(newValue.description)
+                    return
+                }
                 message.timestamp = UInt32(data: newValue[pos..<pos + 3]).bigEndian
                 message.length = Int(Int32(data: newValue[pos + 3..<pos + 6]).bigEndian)
             default:
@@ -166,6 +174,12 @@ final class RTMPChunk {
             }
 
             var start: Int = headerSize
+            
+            if newValue.count <= start + 4 {
+                logger.error(newValue.description)
+                return
+            }
+            
             if message.timestamp == RTMPChunk.maxTimestamp {
                 message.timestamp = UInt32(data: newValue[start..<start + 4]).bigEndian
                 start += 4
