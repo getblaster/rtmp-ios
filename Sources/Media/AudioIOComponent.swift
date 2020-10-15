@@ -51,7 +51,7 @@ public class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
             })
             do {
                 try audioEngine.start()
-                if !playerNode.isPlaying {
+                if !playerNode.isPlaying && audioEngine != nil {
                     playerNode.play()
                 }
             } catch {
