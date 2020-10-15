@@ -175,12 +175,11 @@ final class RTMPChunk {
 
             var start: Int = headerSize
             
-            if newValue.count <= start + 4 {
-                logger.error(newValue.description)
-                return
-            }
-            
             if message.timestamp == RTMPChunk.maxTimestamp {
+                if newValue.count <= start + 4 {
+                    logger.error(newValue.description)
+                    return
+                }
                 message.timestamp = UInt32(data: newValue[start..<start + 4]).bigEndian
                 start += 4
             }
