@@ -267,8 +267,8 @@ extension NetSocket: StreamDelegate {
             }
         //  2 = 1 << 1
         case .hasBytesAvailable:
-            guard let inputStream = inputStream, let outputStream = outputStream,
-                inputStream.streamStatus == .open && outputStream.streamStatus == .open else {
+            guard let inputStream = inputStream,
+                inputStream.streamStatus == .open else {
                 break
             }
             if let aStream = aStream as? InputStream {
