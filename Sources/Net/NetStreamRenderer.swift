@@ -25,20 +25,8 @@ protocol NetStreamRenderer: class {
 
 extension NetStreamRenderer where Self: NetStreamRendererView {
     func render(image: CMSampleBuffer?) {
-        if Thread.isMainThread {
-            //displayImage = image
-//            #if os(macOS)
-//            self.needsDisplay = true
-//            #else
-//            self.setNeedsDisplay()
-//            #endif
-            if let view = self as? GLHKView, let sample = image {
-                view.mainLayer.enqueue(sample)
-            }
-        } else {
-            DispatchQueue.main.async {
-                self.render(image: image)
-            }
+        if let view = self as? GLHKView, let sample = image {
+            view.mainLayer.enqueue(sample)
         }
     }
 }
