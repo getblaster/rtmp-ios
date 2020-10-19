@@ -3,77 +3,63 @@
 import AVFoundation
 import GLKit
 
-open class GLHKView: GLKView, NetStreamRenderer {
-    static let defaultOptions: [CIContextOption: Any] = [
-        .workingColorSpace: NSNull(),
-        .useSoftwareRenderer: NSNumber(value: false)
-    ]
-    public static var defaultBackgroundColor: UIColor = .black
-    open var videoGravity: AVLayerVideoGravity = .resizeAspect
-    public var videoFormatDescription: CMVideoFormatDescription? {
-        currentStream?.mixer.videoIO.formatDescription
+open class GLHKView: UIView, NetStreamRenderer {
+    var orientation: AVCaptureVideoOrientation {
+        get { .portrait
+        }
+        set {
+            
+        }
     }
-    var position: AVCaptureDevice.Position = .back
-    var orientation: AVCaptureVideoOrientation = .portrait
-    open var isMirrored: Bool = false
+    
+    var position: AVCaptureDevice.Position {
+        get {
+            return .front
+        } set {
+            
+        }
+    }
+    
+    var videoFormatDescription: CMVideoFormatDescription? {
+        return nil
+    }
+    
     var displayImage: CIImage?
+    
+    let mainLayer = AVSampleBufferDisplayLayer()
+    
+    public override init(frame: CGRect) {
+        super.init(frame: frame)
+        
+        mainLayer.videoGravity = .resizeAspectFill
+        
+        layer.addSublayer(mainLayer)
+    }
+    
+    required public init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    open override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        mainLayer.frame = bounds
+    }
+    
     private weak var currentStream: NetStream? {
         didSet {
             oldValue?.mixer.videoIO.renderer = nil
         }
     }
 
-    override public init(frame: CGRect) {
-        super.init(frame: frame, context: EAGLContext(api: .openGLES2)!)
-        awakeFromNib()
-    }
-
-    public required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-        self.context = EAGLContext(api: .openGLES2)!
-    }
-
-    override open func awakeFromNib() {
-        super.awakeFromNib()
-        delegate = self
-        enableSetNeedsDisplay = true
-        backgroundColor = GLHKView.defaultBackgroundColor
-        layer.backgroundColor = GLHKView.defaultBackgroundColor.cgColor
-    }
-
     open func attachStream(_ stream: NetStream?) {
         if let stream: NetStream = stream {
-            stream.mixer.videoIO.context = CIContext(eaglContext: context, options: GLHKView.defaultOptions)
             stream.lockQueue.async {
-                self.position = stream.mixer.videoIO.position
                 stream.mixer.videoIO.renderer = self
                 stream.mixer.startRunning()
             }
         }
         currentStream = stream
-    }
-}
-
-extension GLHKView: GLKViewDelegate {
-    // MARK: GLKViewDelegate
-    public func glkView(_ view: GLKView, drawIn rect: CGRect) {
-        glClear(GLbitfield(GL_COLOR_BUFFER_BIT))
-        guard var displayImage: CIImage = displayImage else {
-            return
-        }
-        var inRect = CGRect(x: 0, y: 0, width: CGFloat(drawableWidth), height: CGFloat(drawableHeight))
-        var fromRect: CGRect = displayImage.extent
-
-        if isMirrored {
-            if #available(iOS 11.0, *) {
-                displayImage = displayImage.oriented(.upMirrored)
-            } else {
-                displayImage = displayImage.oriented(forExifOrientation: 2)
-            }
-        }
-
-        VideoGravityUtil.calculate(videoGravity, inRect: &inRect, fromRect: &fromRect)
-        currentStream?.mixer.videoIO.context?.draw(displayImage, in: inRect, from: fromRect)
     }
 }
 

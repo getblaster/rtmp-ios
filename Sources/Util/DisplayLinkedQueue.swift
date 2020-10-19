@@ -15,7 +15,7 @@ protocol DisplayLinkedQueueClockReference: class {
 }
 
 public class DisplayLinkedQueue: NSObject {
-    static let defaultPreferredFramesPerSecond = 0
+    static let defaultPreferredFramesPerSecond = 30
 
     public var offset: TimeInterval = 0
     

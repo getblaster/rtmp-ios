@@ -409,43 +409,16 @@ extension VideoIOComponent {
         guard let buffer: CVImageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
             return
         }
-
-        var imageBuffer: CVImageBuffer?
-
-        CVPixelBufferLockBaseAddress(buffer, [])
-        defer {
-            CVPixelBufferUnlockBaseAddress(buffer, [])
-            if let imageBuffer = imageBuffer {
-                CVPixelBufferUnlockBaseAddress(imageBuffer, [])
-            }
-        }
-
-        if renderer != nil || !effects.isEmpty {
-            let image: CIImage = effect(buffer, info: sampleBuffer)
-            extent = image.extent
-            if !effects.isEmpty {
-                #if os(macOS)
-                CVPixelBufferPoolCreatePixelBuffer(nil, pixelBufferPool, &imageBuffer)
-                #else
-                if buffer.width != Int(extent.width) || buffer.height != Int(extent.height) {
-                    CVPixelBufferPoolCreatePixelBuffer(nil, pixelBufferPool, &imageBuffer)
-                }
-                #endif
-                if let imageBuffer = imageBuffer {
-                    CVPixelBufferLockBaseAddress(imageBuffer, [])
-                }
-                context?.render(image, to: imageBuffer ?? buffer)
-            }
-            renderer?.render(image: image)
-        }
+        
+        renderer?.render(image: sampleBuffer)
 
         encoder.encodeImageBuffer(
-            imageBuffer ?? buffer,
+            buffer,
             presentationTimeStamp: sampleBuffer.presentationTimeStamp,
             duration: sampleBuffer.duration
         )
 
-        mixer?.recorder.appendPixelBuffer(imageBuffer ?? buffer, withPresentationTime: sampleBuffer.presentationTimeStamp)
+        mixer?.recorder.appendPixelBuffer(buffer, withPresentationTime: sampleBuffer.presentationTimeStamp)
     }
 }
 
@@ -483,7 +456,7 @@ extension VideoIOComponent: VideoDecoderDelegate {
 extension VideoIOComponent: DisplayLinkedQueueDelegate {
     // MARK: DisplayLinkedQueue
     func queue(_ buffer: CMSampleBuffer) {
-        renderer?.render(image: CIImage(cvPixelBuffer: buffer.imageBuffer!))
+        renderer?.render(image: buffer)
         mixer?.delegate?.didOutputVideo(buffer)
     }
 
