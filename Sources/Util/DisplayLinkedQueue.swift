@@ -20,8 +20,10 @@ public class DisplayLinkedQueue: NSObject {
     public var offset: TimeInterval = 0
     
     public func reset() {
-        buffer.removeAll()
-        buffer = .init(256)
+        lockQueue.async {
+            self.buffer.removeAll()
+            self.buffer = .init(256)
+        }
     }
     
     var isPaused: Bool {
@@ -57,35 +59,40 @@ public class DisplayLinkedQueue: NSObject {
         guard buffer.presentationTimeStamp != .invalid else {
             return
         }
-        if self.buffer.isEmpty {
-            delegate?.queue(buffer)
+        
+        lockQueue.async {
+            if self.buffer.isEmpty {
+                self.delegate?.queue(buffer)
+            }
+            self.buffer.append(buffer)
         }
-        _ = self.buffer.append(buffer)
     }
 
     @objc
     private func update(displayLink: DisplayLink) {
-        if timestamp == 0.0 {
-            timestamp = displayLink.timestamp
-        }
-        guard let first = buffer.first else {
-            return
-        }
-        defer {
-            if buffer.isEmpty {
-                delegate?.empty()
+        lockQueue.async {
+            if self.timestamp == 0.0 {
+                self.timestamp = displayLink.timestamp
             }
-        }
-        let current = (clockReference?.duration ?? duration) + offset
-        let targetTimestamp = first.presentationTimeStamp.seconds + first.duration.seconds
-        if targetTimestamp < current {
-            buffer.removeFirst()
-            update(displayLink: displayLink)
-            return
-        }
-        if first.presentationTimeStamp.seconds <= current && current <= targetTimestamp {
-            buffer.removeFirst()
-            delegate?.queue(first)
+            guard let first = self.buffer.first else {
+                return
+            }
+            defer {
+                if self.buffer.isEmpty {
+                    self.delegate?.empty()
+                }
+            }
+            let current = (self.clockReference?.duration ?? self.duration) + self.offset
+            let targetTimestamp = first.presentationTimeStamp.seconds + first.duration.seconds
+            if targetTimestamp < current {
+                self.buffer.removeFirst()
+                self.update(displayLink: displayLink)
+                return
+            }
+            if first.presentationTimeStamp.seconds <= current && current <= targetTimestamp {
+                self.buffer.removeFirst()
+                self.delegate?.queue(first)
+            }
         }
     }
 }
@@ -107,8 +114,9 @@ extension DisplayLinkedQueue: Running {
         guard self.isRunning.value else {
             return
         }
-        self.buffer.removeAll()
+        
         lockQueue.async {
+            self.buffer.removeAll()
             self.displayLink = nil
             self.clockReference = nil
             self.isRunning.mutate { $0 = false }

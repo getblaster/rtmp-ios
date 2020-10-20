@@ -34,6 +34,7 @@ struct CircularBuffer<Element> {
         self.extensible = extensible
     }
 
+    @discardableResult
     mutating func append(_ newElement: Element) -> Bool {
         guard !isFull else {
             return extend(newElement)
