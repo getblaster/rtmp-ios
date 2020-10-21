@@ -26,6 +26,9 @@ protocol NetStreamRenderer: class {
 extension NetStreamRenderer where Self: NetStreamRendererView {
     func render(image: CMSampleBuffer?) {
         if let view = self as? GLHKView, let sample = image {
+            if view.mainLayer.status == .failed {
+                view.mainLayer.flush()
+            }
             view.mainLayer.enqueue(sample)
         }
     }
