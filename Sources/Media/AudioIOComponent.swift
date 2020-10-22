@@ -189,7 +189,9 @@ extension AudioIOComponent: AudioConverterDelegate {
         }
         #if os(iOS)
         if #available(iOS 9.0, *) {
-            audioFormat = AVAudioFormat(cmAudioFormatDescription: formatDescription)
+            lockQueue.sync {
+                audioFormat = AVAudioFormat(cmAudioFormatDescription: formatDescription)
+            }
         } else {
             guard let asbd = formatDescription.streamBasicDescription?.pointee else {
                 return
@@ -197,7 +199,9 @@ extension AudioIOComponent: AudioConverterDelegate {
             audioFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: asbd.mSampleRate, channels: asbd.mChannelsPerFrame, interleaved: false)
         }
         #else
-            audioFormat = AVAudioFormat(cmAudioFormatDescription: formatDescription)
+            lockQueue.sync {
+                audioFormat = AVAudioFormat(cmAudioFormatDescription: formatDescription)
+            }
         #endif
         mixer?.videoIO.queue.clockReference = self
     }
