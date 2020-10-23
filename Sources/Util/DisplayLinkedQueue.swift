@@ -85,7 +85,7 @@ public class DisplayLinkedQueue: NSObject {
                 }
             }
 //             let current = (self.clockReference?.duration ?? self.duration) + self.offset
-            let current = testTS
+            let current = self.testTS
             let targetTimestamp = first.presentationTimeStamp.seconds + first.duration.seconds
             if targetTimestamp < current {
                 self.buffer.removeFirst()
