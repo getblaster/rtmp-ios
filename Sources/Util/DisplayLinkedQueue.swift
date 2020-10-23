@@ -10,7 +10,7 @@ protocol DisplayLinkedQueueDelegate: class {
     func empty()
 }
 
-protocol DisplayLinkedQueueClockReference: class {
+public protocol DisplayLinkedQueueClockReference: class {
     var duration: TimeInterval { get }
 }
 
@@ -32,11 +32,11 @@ public class DisplayLinkedQueue: NSObject {
         get { displayLink?.isPaused ?? false }
         set { displayLink?.isPaused = newValue }
     }
-    var duration: TimeInterval {
+    public var duration: TimeInterval {
         (displayLink?.timestamp ?? 0.0) - timestamp
     }
     weak var delegate: DisplayLinkedQueueDelegate?
-    weak var clockReference: DisplayLinkedQueueClockReference?
+    public weak var clockReference: DisplayLinkedQueueClockReference?
     private var timestamp: TimeInterval = 0.0
     private var buffer: CircularBuffer<CMSampleBuffer> = .init(256)
     private var displayLink: DisplayLink? {
@@ -84,8 +84,8 @@ public class DisplayLinkedQueue: NSObject {
                     self.delegate?.empty()
                 }
             }
-//             let current = (self.clockReference?.duration ?? self.duration) + self.offset
-            let current = self.testTS
+             let current = (self.clockReference?.duration ?? self.duration) + self.offset
+//            let current = self.testTS
             let targetTimestamp = first.presentationTimeStamp.seconds + first.duration.seconds
             if targetTimestamp < current {
                 self.buffer.removeFirst()
