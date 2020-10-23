@@ -573,7 +573,11 @@ final class RTMPAudioMessage: RTMPMessage {
         }
         switch type {
         case .zero:
-            stream.audioTimestamp = Double(timestamp)
+            if timestamp != 0 {
+                stream.audioTimestamp = 0
+            } else {
+                stream.audioTimestamp += Double(timestamp)
+            }
         default:
             stream.audioTimestamp += Double(timestamp)
         }
