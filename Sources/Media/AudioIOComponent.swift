@@ -9,7 +9,7 @@ public class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
     let lockQueue = DispatchQueue(label: "com.haishinkit.HaishinKit.AudioIOComponent.lock")
 
     var audioEngine: AVAudioEngine?
-    var duration: TimeInterval {
+    public var duration: TimeInterval {
         guard let nodeTime = playerNode.lastRenderTime, let playerTime = playerNode.playerTime(forNodeTime: nodeTime) else {
             return 0.0
         }
