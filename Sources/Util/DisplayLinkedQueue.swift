@@ -17,6 +17,8 @@ protocol DisplayLinkedQueueClockReference: class {
 public class DisplayLinkedQueue: NSObject {
     static let defaultPreferredFramesPerSecond = 0
 
+    public var testTS: TimeInterval = 0
+    
     public var offset: TimeInterval = 0
     
     public func reset() {
@@ -82,7 +84,8 @@ public class DisplayLinkedQueue: NSObject {
                     self.delegate?.empty()
                 }
             }
-            let current = (self.clockReference?.duration ?? self.duration) + self.offset
+//             let current = (self.clockReference?.duration ?? self.duration) + self.offset
+            let current = testTS
             let targetTimestamp = first.presentationTimeStamp.seconds + first.duration.seconds
             if targetTimestamp < current {
                 self.buffer.removeFirst()
