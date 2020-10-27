@@ -28,6 +28,10 @@ open class GLHKView: UIView, NetStreamRenderer {
     
     let mainLayer = AVSampleBufferDisplayLayer()
     
+    public func flush() {
+        mainLayer.flush()
+    }
+    
     public override init(frame: CGRect) {
         super.init(frame: frame)
         
