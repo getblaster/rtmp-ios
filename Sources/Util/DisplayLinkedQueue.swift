@@ -12,6 +12,7 @@ protocol DisplayLinkedQueueDelegate: class {
 
 public protocol DisplayLinkedQueueClockReference: class {
     var duration: TimeInterval { get }
+    var lastPlayedTS: TimeInterval { get }
 }
 
 public class DisplayLinkedQueue: NSObject {
@@ -82,7 +83,8 @@ public class DisplayLinkedQueue: NSObject {
                     self.delegate?.empty()
                 }
             }
-             let current = (self.clockReference?.duration ?? self.duration) + self.offset
+//             let current = (self.clockReference?.duration ?? self.duration) + self.offset
+            let current = (self.clockReference?.lastPlayedTS ?? 0)
             let targetTimestamp = first.presentationTimeStamp.seconds + first.duration.seconds
             if targetTimestamp < current {
                 self.buffer.removeFirst()
