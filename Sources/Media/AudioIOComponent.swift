@@ -15,6 +15,12 @@ public class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
         }
         return TimeInterval(playerTime.sampleTime) / playerTime.sampleRate
     }
+    public var lastPlayedTS: TimeInterval {
+        return lastScheduledTime.seconds
+    }
+    
+    var lastScheduledTime = CMTime.zero
+    
     var currentBuffers: Atomic<Int> = .init(0)
     var soundTransform: SoundTransform = .init() {
         didSet {
@@ -228,6 +234,8 @@ extension AudioIOComponent: AudioConverterDelegate {
             bufferList[i].mNumberChannels = 1
         }
 
+        lastScheduledTime = presentationTimeStamp
+        
         mixer?.delegate?.didOutputAudio(buffer, presentationTimeStamp: presentationTimeStamp)
         currentBuffers.mutate { $0 += 1 }
 
