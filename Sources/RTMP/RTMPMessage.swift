@@ -635,6 +635,7 @@ final class RTMPVideoMessage: RTMPMessage {
         case FLVAVCPacketType.seq.rawValue:
             status = makeFormatDescription(stream)
             stream.dispatch(.rtmpStatus, bubbles: false, data: RTMPStream.Code.videoDimensionChange.data(""))
+            stream.videoTimestamp = Double(timestamp)
         case FLVAVCPacketType.nal.rawValue:
             enqueueSampleBuffer(stream, type: type)
         default:
@@ -649,15 +650,10 @@ final class RTMPVideoMessage: RTMPMessage {
         var compositionTime = isBaseline ? 0 : Int32(data: [0] + payload[2..<5]).bigEndian
         compositionTime <<= 8
         compositionTime /= 256
+        
+        stream.videoTimestamp += Double(timestamp)
 
-        switch type {
-        case .zero:
-            stream.videoTimestamp = Double(timestamp)
-        default:
-            stream.videoTimestamp += Double(timestamp)
-        }
-
-        let presentationTimeStamp = CMTimeMake(value: Int64(stream.videoTimestamp) + Int64(compositionTime), timescale: 1000)
+        let presentationTimeStamp = CMTimeMake(value: Int64(stream.videoTimestamp), timescale: 1000)
 
         var timing = CMSampleTimingInfo(
             duration: CMTimeMake(value: Int64(timestamp), timescale: 1000),
