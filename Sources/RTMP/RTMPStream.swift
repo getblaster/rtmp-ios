@@ -6,7 +6,8 @@ import AVFoundation
 open class RTMPStream: NetStream {
  
     public var currentVideoDecodeTimestamp = CMTime.zero
- 
+    public var videoZeroTS = 0.0
+    public var audioZeroTS = 0.0
     /**
      NetStatusEvent#info.code for NetStream
      */
