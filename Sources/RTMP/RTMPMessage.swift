@@ -574,6 +574,7 @@ final class RTMPAudioMessage: RTMPMessage {
         switch type {
         case .zero:
             stream.audioTimestamp = Double(timestamp)
+            stream.audioZeroTS = Double(timestamp)
         default:
             stream.audioTimestamp += Double(timestamp)
         }
@@ -598,7 +599,7 @@ final class RTMPAudioMessage: RTMPMessage {
             stream.mixer.audioIO.encoder.encodeBytes(
                 buffer.baseAddress?.advanced(by: codec.headerSize),
                 count: payload.count - codec.headerSize,
-                presentationTimeStamp: CMTime(seconds: stream.audioTimestamp / 1000, preferredTimescale: 1000)
+                presentationTimeStamp: CMTime(seconds: (stream.audioTimestamp - stream.audioZeroTS) / 1000, preferredTimescale: 1000)
             )
         }
     }
@@ -636,6 +637,7 @@ final class RTMPVideoMessage: RTMPMessage {
             status = makeFormatDescription(stream)
             stream.dispatch(.rtmpStatus, bubbles: false, data: RTMPStream.Code.videoDimensionChange.data(""))
             stream.videoTimestamp = Double(timestamp)
+            stream.videoZeroTS = Double(timestamp)
         case FLVAVCPacketType.nal.rawValue:
             enqueueSampleBuffer(stream, type: type)
         default:
@@ -653,7 +655,7 @@ final class RTMPVideoMessage: RTMPMessage {
         
         stream.videoTimestamp += Double(timestamp)
 
-        let presentationTimeStamp = CMTimeMake(value: Int64(stream.videoTimestamp), timescale: 1000)
+        let presentationTimeStamp = CMTimeMake(value: Int64(stream.videoTimestamp - stream.videoZeroTS), timescale: 1000)
 
         var timing = CMSampleTimingInfo(
             duration: CMTimeMake(value: Int64(timestamp), timescale: 1000),
