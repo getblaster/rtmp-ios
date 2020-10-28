@@ -459,7 +459,9 @@ extension VideoIOComponent: DisplayLinkedQueueDelegate {
         renderer?.render(image: buffer)
         mixer?.delegate?.didOutputVideo(buffer)
     }
-
+    func flush() {
+        renderer?.flush()
+    }
     func empty() {
         mixer?.didBufferEmpty(self)
     }

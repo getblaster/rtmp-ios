@@ -15,11 +15,12 @@ public class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
         }
         return TimeInterval(playerTime.sampleTime) / playerTime.sampleRate
     }
-    public var lastPlayedTS: TimeInterval {
-        return lastScheduledTime.seconds
+    public var currentAudioTime: TimeInterval {
+        return lastPlayedTime.seconds
     }
     
-    var lastScheduledTime = CMTime.zero
+    public var lastScheduledTime = CMTime.zero
+    var lastPlayedTime = CMTime.zero
     
     var currentBuffers: Atomic<Int> = .init(0)
     var soundTransform: SoundTransform = .init() {
@@ -234,13 +235,21 @@ extension AudioIOComponent: AudioConverterDelegate {
             bufferList[i].mNumberChannels = 1
         }
 
-        lastScheduledTime = presentationTimeStamp
+        self.lastScheduledTime = presentationTimeStamp
         
         mixer?.delegate?.didOutputAudio(buffer, presentationTimeStamp: presentationTimeStamp)
         currentBuffers.mutate { $0 += 1 }
 
         nstry({
-            self.playerNode.scheduleBuffer(buffer, completionHandler: self.didAVAudioNodeCompletion)
+            if #available(iOS 11.0, *) {
+                self.playerNode.scheduleBuffer(buffer, completionCallbackType: AVAudioPlayerNodeCompletionCallbackType.dataPlayedBack) { [weak self, presentationTimeStamp] callback in
+                    guard let self = self else { return }
+                    self.lastPlayedTime = presentationTimeStamp
+                    self.didAVAudioNodeCompletion()
+                }
+            } else {
+                self.playerNode.scheduleBuffer(buffer, completionHandler: self.didAVAudioNodeCompletion)
+            }
             if !self.playerNode.isPlaying {
                 self.playerNode.play()
             }

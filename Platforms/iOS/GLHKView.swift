@@ -29,7 +29,7 @@ open class GLHKView: UIView, NetStreamRenderer {
     let mainLayer = AVSampleBufferDisplayLayer()
     
     public func flush() {
-        mainLayer.flush()
+        mainLayer.flushAndRemoveImage()
     }
     
     public override init(frame: CGRect) {

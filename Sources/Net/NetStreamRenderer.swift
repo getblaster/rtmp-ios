@@ -20,6 +20,7 @@ protocol NetStreamRenderer: class {
     var videoFormatDescription: CMVideoFormatDescription? { get }
 
     func render(image: CMSampleBuffer?)
+    func flush()
     func attachStream(_ stream: NetStream?)
 }
 
@@ -30,6 +31,11 @@ extension NetStreamRenderer where Self: NetStreamRendererView {
                 view.mainLayer.flush()
             }
             view.mainLayer.enqueue(sample)
+        }
+    }
+    func flush() {
+        if let view = self as? GLHKView {
+            view.mainLayer.flushAndRemoveImage()
         }
     }
 }

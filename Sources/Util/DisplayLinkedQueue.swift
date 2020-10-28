@@ -8,11 +8,12 @@ import AVFoundation
 protocol DisplayLinkedQueueDelegate: class {
     func queue(_ buffer: CMSampleBuffer)
     func empty()
+    func flush()
 }
 
 public protocol DisplayLinkedQueueClockReference: class {
     var duration: TimeInterval { get }
-    var lastPlayedTS: TimeInterval { get }
+    var currentAudioTime: TimeInterval { get }
 }
 
 public class DisplayLinkedQueue: NSObject {
@@ -65,6 +66,10 @@ public class DisplayLinkedQueue: NSObject {
             if self.buffer.isEmpty {
                 self.delegate?.queue(buffer)
             }
+            if self.buffer.first?.presentationTimeStamp.seconds ?? 0 > buffer.presentationTimeStamp.seconds { //Case when timestamp played before is higher than current. Need to flush display layer
+                self.buffer.removeAll()
+                self.delegate?.flush()
+            }
             self.buffer.append(buffer)
         }
     }
@@ -83,9 +88,9 @@ public class DisplayLinkedQueue: NSObject {
                     self.delegate?.empty()
                 }
             }
-             let current = (self.clockReference?.duration ?? self.duration) + self.offset
-//            let current = (self.clockReference?.lastPlayedTS ?? 0)
+            let current = (self.clockReference?.currentAudioTime ?? 0)
             let targetTimestamp = first.presentationTimeStamp.seconds + first.duration.seconds
+            
             if targetTimestamp < current {
                 self.buffer.removeFirst()
                 self.update(displayLink: displayLink)
@@ -94,6 +99,7 @@ public class DisplayLinkedQueue: NSObject {
             if first.presentationTimeStamp.seconds <= current && current <= targetTimestamp {
                 self.buffer.removeFirst()
                 self.delegate?.queue(first)
+                return
             }
         }
     }
