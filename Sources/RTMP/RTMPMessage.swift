@@ -655,7 +655,7 @@ final class RTMPVideoMessage: RTMPMessage {
         
         stream.videoTimestamp += Double(timestamp)
 
-        let presentationTimeStamp = CMTimeMake(value: Int64(stream.videoTimestamp - stream.videoZeroTS), timescale: 1000)
+        let presentationTimeStamp = CMTimeMake(value: Int64(stream.videoTimestamp - stream.videoZeroTS + Double(compositionTime)), timescale: 1000)
 
         var timing = CMSampleTimingInfo(
             duration: CMTimeMake(value: Int64(timestamp), timescale: 1000),
