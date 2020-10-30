@@ -36,6 +36,7 @@ extension RTMPMuxer: AudioConverterDelegate {
     func sampleOutput(audio data: UnsafeMutableAudioBufferListPointer, presentationTimeStamp: CMTime) {
         let delta: Double = (audioTimeStamp == CMTime.zero ? 0 : presentationTimeStamp.seconds - audioTimeStamp.seconds) * 1000
         guard let bytes = data[0].mData, 0 < data[0].mDataByteSize && 0 <= delta else {
+            audioTimeStamp = presentationTimeStamp
             return
         }
         var buffer = Data([RTMPMuxer.aac, FLVAACPacketType.raw.rawValue])
@@ -70,6 +71,7 @@ extension RTMPMuxer: VideoEncoderDelegate {
         }
         let delta: Double = (videoTimeStamp == CMTime.zero ? 0 : decodeTimeStamp.seconds - videoTimeStamp.seconds) * 1000
         guard let data = sampleBuffer.dataBuffer?.data, 0 <= delta else {
+            videoTimeStamp = decodeTimeStamp
             return
         }
         var buffer = Data([((keyframe ? FLVFrameType.key.rawValue : FLVFrameType.inter.rawValue) << 4) | FLVVideoCodec.avc.rawValue, FLVAVCPacketType.nal.rawValue])
