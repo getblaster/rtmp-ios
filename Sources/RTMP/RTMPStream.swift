@@ -550,6 +550,47 @@ open class RTMPStream: NetStream {
             break
         }
     }
+    
+    // MARK: RTMPMuxerDelegate
+    open func metadata(_ metadata: ASObject) {
+        send(handlerName: "@setDataFrame", arguments: "onMetaData", metadata)
+    }
+
+    open func sampleOutput(audio buffer: Data, withTimestamp: Double, muxer: RTMPMuxer) {
+        guard readyState == .publishing else {
+            return
+        }
+        let type: FLVTagType = .audio
+        let length: Int = rtmpConnection.socket.doOutput(chunk: RTMPChunk(
+            type: audioWasSent ? .one : .zero,
+            streamId: type.streamId,
+            message: RTMPAudioMessage(streamId: id, timestamp: UInt32(audioTimestamp), payload: buffer)
+        ), locked: nil)
+        audioWasSent = true
+        info.byteCount.mutate { $0 += Int64(length) }
+        audioTimestamp = withTimestamp + (audioTimestamp - floor(audioTimestamp))
+    }
+
+    open func sampleOutput(video buffer: Data, withTimestamp: Double, muxer: RTMPMuxer) {
+        guard readyState == .publishing else {
+            return
+        }
+        let type: FLVTagType = .video
+        OSAtomicOr32Barrier(1, &mixer.videoIO.encoder.locked)
+        let length: Int = rtmpConnection.socket.doOutput(chunk: RTMPChunk(
+            type: videoWasSent ? .one : .zero,
+            streamId: type.streamId,
+            message: RTMPVideoMessage(streamId: id, timestamp: UInt32(videoTimestamp), payload: buffer)
+        ), locked: &mixer.videoIO.encoder.locked)
+        if !videoWasSent {
+            logger.debug("first video frame was sent")
+        }
+        videoWasSent = true
+        info.byteCount.mutate { $0 += Int64(length) }
+        videoTimestamp = withTimestamp + (videoTimestamp - floor(videoTimestamp))
+        frameCount += 1
+    }
+    
 }
 
 extension RTMPStream {
@@ -588,45 +629,7 @@ extension RTMPStream: IEventDispatcher {
 }
 
 extension RTMPStream: RTMPMuxerDelegate {
-    // MARK: RTMPMuxerDelegate
-    func metadata(_ metadata: ASObject) {
-        send(handlerName: "@setDataFrame", arguments: "onMetaData", metadata)
-    }
 
-    func sampleOutput(audio buffer: Data, withTimestamp: Double, muxer: RTMPMuxer) {
-        guard readyState == .publishing else {
-            return
-        }
-        let type: FLVTagType = .audio
-        let length: Int = rtmpConnection.socket.doOutput(chunk: RTMPChunk(
-            type: audioWasSent ? .one : .zero,
-            streamId: type.streamId,
-            message: RTMPAudioMessage(streamId: id, timestamp: UInt32(audioTimestamp), payload: buffer)
-        ), locked: nil)
-        audioWasSent = true
-        info.byteCount.mutate { $0 += Int64(length) }
-        audioTimestamp = withTimestamp + (audioTimestamp - floor(audioTimestamp))
-    }
-
-    func sampleOutput(video buffer: Data, withTimestamp: Double, muxer: RTMPMuxer) {
-        guard readyState == .publishing else {
-            return
-        }
-        let type: FLVTagType = .video
-        OSAtomicOr32Barrier(1, &mixer.videoIO.encoder.locked)
-        let length: Int = rtmpConnection.socket.doOutput(chunk: RTMPChunk(
-            type: videoWasSent ? .one : .zero,
-            streamId: type.streamId,
-            message: RTMPVideoMessage(streamId: id, timestamp: UInt32(videoTimestamp), payload: buffer)
-        ), locked: &mixer.videoIO.encoder.locked)
-        if !videoWasSent {
-            logger.debug("first video frame was sent")
-        }
-        videoWasSent = true
-        info.byteCount.mutate { $0 += Int64(length) }
-        videoTimestamp = withTimestamp + (videoTimestamp - floor(videoTimestamp))
-        frameCount += 1
-    }
 }
 
 extension RTMPStream: AVMixerDelegate {

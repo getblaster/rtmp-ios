@@ -7,7 +7,7 @@ protocol RTMPMuxerDelegate: class {
 }
 
 // MARK: -
-final class RTMPMuxer {
+final public class RTMPMuxer {
     static let aac: UInt8 = FLVAudioCodec.aac.rawValue << 4 | FLVSoundRate.kHz44.rawValue << 2 | FLVSoundSize.snd16bit.rawValue << 1 | FLVSoundType.stereo.rawValue
 
     weak var delegate: RTMPMuxerDelegate?
@@ -24,7 +24,7 @@ final class RTMPMuxer {
 
 extension RTMPMuxer: AudioConverterDelegate {
     // MARK: AudioConverterDelegate
-    func didSetFormatDescription(audio formatDescription: CMFormatDescription?) {
+    public func didSetFormatDescription(audio formatDescription: CMFormatDescription?) {
         guard let formatDescription = formatDescription else {
             return
         }
@@ -33,7 +33,7 @@ extension RTMPMuxer: AudioConverterDelegate {
         delegate?.sampleOutput(audio: buffer, withTimestamp: 0, muxer: self)
     }
 
-    func sampleOutput(audio data: UnsafeMutableAudioBufferListPointer, presentationTimeStamp: CMTime) {
+    public func sampleOutput(audio data: UnsafeMutableAudioBufferListPointer, presentationTimeStamp: CMTime) {
         let delta: Double = (audioTimeStamp == CMTime.zero ? 0 : presentationTimeStamp.seconds - audioTimeStamp.seconds) * 1000
         guard let bytes = data[0].mData, 0 < data[0].mDataByteSize && 0 <= delta else {
             return
@@ -47,7 +47,7 @@ extension RTMPMuxer: AudioConverterDelegate {
 
 extension RTMPMuxer: VideoEncoderDelegate {
     // MARK: VideoEncoderDelegate
-    func didSetFormatDescription(video formatDescription: CMFormatDescription?) {
+    public func didSetFormatDescription(video formatDescription: CMFormatDescription?) {
         guard
             let formatDescription = formatDescription,
             let avcC = AVCConfigurationRecord.getData(formatDescription) else {
@@ -58,7 +58,7 @@ extension RTMPMuxer: VideoEncoderDelegate {
         delegate?.sampleOutput(video: buffer, withTimestamp: 0, muxer: self)
     }
 
-    func sampleOutput(video sampleBuffer: CMSampleBuffer) {
+    public func sampleOutput(video sampleBuffer: CMSampleBuffer) {
         let keyframe: Bool = !sampleBuffer.isNotSync
         var compositionTime: Int32 = 0
         let presentationTimeStamp: CMTime = sampleBuffer.presentationTimeStamp
