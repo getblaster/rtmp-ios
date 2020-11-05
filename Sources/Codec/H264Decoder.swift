@@ -17,7 +17,7 @@ final class H264Decoder {
         ._EnableAsynchronousDecompression,
         ._EnableTemporalProcessing
     ]
-    static let defaultMinimumGroupOfPictures: Int = 12
+    static let defaultMinimumGroupOfPictures: Int = 1
 
     #if os(iOS)
     static let defaultAttributes: [NSString: AnyObject] = [
