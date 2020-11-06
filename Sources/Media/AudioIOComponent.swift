@@ -176,7 +176,7 @@ public class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
     }
     
     public func reset() {
-        self.playerNode.reset()
+        self.playerNode.stop()
     }
 }
 
