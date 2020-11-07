@@ -146,7 +146,7 @@ public class AudioConverter {
     }
 
     private var _converter: AudioConverterRef?
-    private var converter: AudioConverterRef? {
+    private var converter: AudioConverterRef {
         var status: OSStatus = noErr
         if _converter == nil {
             var inClassDescriptions = destination.inClassDescriptions
@@ -164,7 +164,7 @@ public class AudioConverter {
         if status != noErr {
             logger.warn("\(status)")
         }
-        return _converter
+        return _converter!
     }
 
     public func encodeBytes(_ bytes: UnsafeMutableRawPointer?, count: Int, presentationTimeStamp: CMTime) {
@@ -235,15 +235,6 @@ public class AudioConverter {
             if shouldReturn {
                 break
                 return
-            }
-            
-            var converter: AudioConverterRef!
-            lockQueue.sync {
-                converter = self.converter
-            }
-            
-            guard converter != nil else {
-                continue
             }
 
             let status = AudioConverterFillComplexBuffer(
