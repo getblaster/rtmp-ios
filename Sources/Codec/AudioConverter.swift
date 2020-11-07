@@ -82,17 +82,7 @@ public class AudioConverter {
             delegate?.didSetFormatDescription(audio: formatDescription)
         }
     }
-    private var lockQueueSpecific: DispatchSpecificKey<Void> = .init()
-    lazy var lockQueue: DispatchQueue = {
-        let queue = DispatchQueue(label: "com.haishinkit.HaishinKit.AudioConverter.lock")
-        queue.setSpecific(key: lockQueueSpecific, value: ())
-        
-        return queue
-    }() {
-        didSet {
-            lockQueue.setSpecific(key: lockQueueSpecific, value: ())
-        }
-    }
+    var lockQueue = DispatchQueue(label: "com.haishinkit.HaishinKit.AudioConverter.lock")
     var inSourceFormat: AudioStreamBasicDescription? {
         didSet {
             guard let inSourceFormat = inSourceFormat, inSourceFormat != oldValue else {
@@ -248,12 +238,8 @@ public class AudioConverter {
             }
             
             var converter: AudioConverterRef!
-            if DispatchQueue.getSpecific(key: lockQueueSpecific) != nil {
+            lockQueue.sync {
                 converter = self.converter
-            } else {
-                lockQueue.sync {
-                    converter = self.converter
-                }
             }
             
             guard converter != nil else {
