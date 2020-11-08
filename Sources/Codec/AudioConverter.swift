@@ -11,6 +11,9 @@ public protocol AudioConverterDelegate: class {
   - https://developer.apple.com/library/ios/technotes/tn2236/_index.html
  */
 public class AudioConverter {
+    struct QueueIdentity {
+        let label: String
+    }
     enum Error: Swift.Error {
         case setPropertyError(id: AudioConverterPropertyID, status: OSStatus)
     }
@@ -82,7 +85,18 @@ public class AudioConverter {
             delegate?.didSetFormatDescription(audio: formatDescription)
         }
     }
-    var lockQueue = DispatchQueue(label: "com.haishinkit.HaishinKit.AudioConverter.lock")
+    private var lockQueueSpecific: DispatchSpecificKey<QueueIdentity> = .init()
+    lazy var lockQueue: DispatchQueue = {
+        let queue = DispatchQueue(label: "com.haishinkit.HaishinKit.AudioConverter.lock")
+        queue.setSpecific(key: lockQueueSpecific, value: QueueIdentity(label: queue.label))
+        
+        return queue
+    }() {
+        didSet {
+            lockQueueSpecific = .init()
+            lockQueue.setSpecific(key: lockQueueSpecific, value: QueueIdentity(label: lockQueue.label))
+        }
+    }
     var inSourceFormat: AudioStreamBasicDescription? {
         didSet {
             guard let inSourceFormat = inSourceFormat, inSourceFormat != oldValue else {
@@ -146,7 +160,7 @@ public class AudioConverter {
     }
 
     private var _converter: AudioConverterRef?
-    private var converter: AudioConverterRef {
+    private var converter: AudioConverterRef? {
         var status: OSStatus = noErr
         if _converter == nil {
             var inClassDescriptions = destination.inClassDescriptions
@@ -164,7 +178,7 @@ public class AudioConverter {
         if status != noErr {
             logger.warn("\(status)")
         }
-        return _converter!
+        return _converter
     }
 
     public func encodeBytes(_ bytes: UnsafeMutableRawPointer?, count: Int, presentationTimeStamp: CMTime) {
@@ -235,6 +249,18 @@ public class AudioConverter {
             if shouldReturn {
                 break
                 return
+            }
+            var converter: AudioConverterRef!
+            if DispatchQueue.getSpecific(key: lockQueueSpecific)?.label == lockQueue.label {
+                converter = self.converter
+            } else {
+                lockQueue.sync {
+                    converter = self.converter
+                }
+            }
+                        
+            guard converter != nil else {
+                continue
             }
 
             let status = AudioConverterFillComplexBuffer(

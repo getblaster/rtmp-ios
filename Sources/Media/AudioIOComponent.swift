@@ -250,7 +250,7 @@ extension AudioIOComponent: AudioConverterDelegate {
             } else {
                 self.playerNode.scheduleBuffer(buffer, completionHandler: self.didAVAudioNodeCompletion)
             }
-            if !self.playerNode.isPlaying {
+            if !self.playerNode.isPlaying, let engine = self.playerNode.engine, engine.isRunning {
                 self.playerNode.play()
             }
         }, { exeption in
