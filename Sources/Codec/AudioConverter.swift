@@ -176,7 +176,9 @@ public class AudioConverter {
                     &_converter
                 )
             }
-            setBitrateUntilNoErr(bitrate * inDestinationFormat.mChannelsPerFrame)
+            if let inDestinationFormat = inDestinationFormat {
+                setBitrateUntilNoErr(bitrate * inDestinationFormat.mChannelsPerFrame)
+            }
         }
         if status != noErr {
             logger.warn("\(status)")

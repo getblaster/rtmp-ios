@@ -58,7 +58,7 @@ public class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
             })
             do {
                 try audioEngine.start()
-                if !playerNode.isPlaying && audioEngine.isRunning {
+                if !playerNode.isPlaying, let engine = playerNode.engine, engine.isRunning {
                     playerNode.play()
                 }
             } catch {
@@ -176,7 +176,7 @@ public class AudioIOComponent: IOComponent, DisplayLinkedQueueClockReference {
     }
     
     public func reset() {
-        self.playerNode.stop()
+        self.playerNode.reset()
     }
 }
 
