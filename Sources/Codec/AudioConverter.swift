@@ -2,6 +2,7 @@ import AVFoundation
 
 public protocol AudioConverterDelegate: class {
     func didSetFormatDescription(audio formatDescription: CMFormatDescription?)
+    func didSetFormatDescription(audio formatDescription: CMFormatDescription?, synchronized: Bool)
     func sampleOutput(audio data: UnsafeMutableAudioBufferListPointer, presentationTimeStamp: CMTime)
 }
 
@@ -82,7 +83,9 @@ public class AudioConverter {
                 return
             }
             logger.info(formatDescription.debugDescription)
-            delegate?.didSetFormatDescription(audio: formatDescription)
+            
+            let synchronized = DispatchQueue.getSpecific(key: lockQueueSpecific)?.label == lockQueue.label
+            delegate?.didSetFormatDescription(audio: formatDescription, synchronized: synchronized)
         }
     }
     private var lockQueueSpecific: DispatchSpecificKey<QueueIdentity> = .init()

@@ -190,14 +190,22 @@ extension AudioIOComponent: AVCaptureAudioDataOutputSampleBufferDelegate {
 extension AudioIOComponent: AudioConverterDelegate {
     // MARK: AudioConverterDelegate
     public func didSetFormatDescription(audio formatDescription: CMFormatDescription?) {
+        didSetFormatDescription(audio: formatDescription, synchronized: false)
+    }
+    
+    public func didSetFormatDescription(audio formatDescription: CMFormatDescription?, synchronized: Bool) {
         guard let formatDescription = formatDescription else {
             mixer?.videoIO.queue.clockReference = nil
             return
         }
         #if os(iOS)
         if #available(iOS 9.0, *) {
-            lockQueue.sync {
+            if synchronized {
                 audioFormat = AVAudioFormat(cmAudioFormatDescription: formatDescription)
+            } else {
+                lockQueue.sync {
+                    audioFormat = AVAudioFormat(cmAudioFormatDescription: formatDescription)
+                }
             }
         } else {
             guard let asbd = formatDescription.streamBasicDescription?.pointee else {

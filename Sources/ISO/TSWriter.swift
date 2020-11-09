@@ -210,7 +210,12 @@ public class TSWriter: Running {
 
 extension TSWriter: AudioConverterDelegate {
     // MARK: AudioConverterDelegate
+    
     public func didSetFormatDescription(audio formatDescription: CMFormatDescription?) {
+        didSetFormatDescription(audio: formatDescription, synchronized: false)
+    }
+    
+    public func didSetFormatDescription(audio formatDescription: CMFormatDescription?, synchronized: Bool) {
         guard let formatDescription: CMAudioFormatDescription = formatDescription else {
             return
         }
