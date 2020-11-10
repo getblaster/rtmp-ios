@@ -30,6 +30,13 @@ extension NetStreamRenderer where Self: NetStreamRendererView {
             if view.mainLayer.status == .failed {
                 view.mainLayer.flush()
             }
+            if view.mainLayer.controlTimebase == nil {
+                CMTimebaseCreateWithMasterClock(allocator: kCFAllocatorDefault, masterClock: CMClockGetHostTimeClock(), timebaseOut: &view.mainLayer.controlTimebase)
+                if let timebase = view.mainLayer.controlTimebase {
+                    CMTimebaseSetTime(view.mainLayer.controlTimebase!, time: sample.presentationTimeStamp)
+                    CMTimebaseSetRate(view.mainLayer.controlTimebase!, rate: 1.0)
+                }
+            }
             view.mainLayer.enqueue(sample)
         }
     }
