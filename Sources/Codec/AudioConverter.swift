@@ -255,27 +255,40 @@ public class AudioConverter {
                 break
                 return
             }
-            var converter: AudioConverterRef!
+            var status: OSStatus!
             if DispatchQueue.getSpecific(key: lockQueueSpecific)?.label == lockQueue.label {
-                converter = self.converter
+                guard let converter = converter else {
+                    return
+                }
+                
+                status = AudioConverterFillComplexBuffer(
+                    converter,
+                    inputDataProc,
+                    Unmanaged.passUnretained(self).toOpaque(),
+                    &ioOutputDataPacketSize,
+                    outOutputData.unsafeMutablePointer,
+                    nil
+                )
             } else {
-                lockQueue.sync {
-                    converter = self.converter
+                lockQueue.sync { [weak self] in
+                    guard let self = self, let converter = self.converter else {
+                        return
+                    }
+                    
+                    status = AudioConverterFillComplexBuffer(
+                        converter,
+                        inputDataProc,
+                        Unmanaged.passUnretained(self).toOpaque(),
+                        &ioOutputDataPacketSize,
+                        outOutputData.unsafeMutablePointer,
+                        nil
+                    )
                 }
             }
-                        
-            guard converter != nil else {
-                continue
+            
+            guard status != nil else {
+                return
             }
-
-            let status = AudioConverterFillComplexBuffer(
-                converter,
-                inputDataProc,
-                Unmanaged.passUnretained(self).toOpaque(),
-                &ioOutputDataPacketSize,
-                outOutputData.unsafeMutablePointer,
-                nil
-            )
 
             switch status {
             // kAudioConverterErr_InvalidInputSize: perhaps mistake. but can support macOS BuiltIn Mic #61
